@@ -213,7 +213,13 @@ BOOTLOADER_REGION_START = $(addprefix 0x, $(shell echo "obase=16; (${FLASH_KB}-1
 BOOTLOADER_SETTINGS_ADDRESS = $(addprefix 0x, $(shell echo "obase=16; (${FLASH_KB}-2)*1024" | bc))
 
 # Need some common options for interacting with the chip over JTAG
-JLINK_OPTIONS = -device $(NRF_IC) -if swd -speed 1000
+ifeq ($(NRF_MODEL), nrf51)
+  JLINK_OPTIONS = -device $(NRF_IC) -if swd -speed 1000
+# Default to SDK 12 for nrf52
+else ifeq ($(NRF_MODEL), nrf52)
+  JLINK_OPTIONS = -device $(NRF_MODEL) -if swd -speed 1000
+endif
+
 
 # If not set in app makefile, lets optimize for size
 CFLAGS += -Os
@@ -244,7 +250,6 @@ SOURCE_PATHS += $(BASE_DIR)/services/
 SOURCE_PATHS += $(BASE_DIR)/startup/
 
 # Add paths for each SDK version
-ifeq ($(NRF_MODEL), nrf51)
 ifeq ($(SDK_VERSION), 12)
 
 	# Set the path
@@ -284,6 +289,7 @@ ifeq ($(SDK_VERSION), 12)
 	LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)drivers_nrf/validation/)
 	LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)drivers_ext/*/)
 	LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)device/)
+    LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)boards/)
 	LIBRARY_PATHS += $(SDK_INCLUDE_PATH)toolchain/gcc/
 	LIBRARY_PATHS += $(SDK_INCLUDE_PATH)toolchain/
 	LIBRARY_PATHS += $(SDK_INCLUDE_PATH)toolchain/cmsis/include/
@@ -710,7 +716,6 @@ else
 endif
 
 endif # SDK 9
-endif # nrf51
 
 
 # Set the Softdevice path
@@ -764,7 +769,13 @@ VPATH = $(SOURCE_PATHS)
 
 OUTPUT_PATH ?= _build/
 
-CPUFLAGS = -mthumb -mcpu=cortex-m0 -march=armv6-m
+CPUFLAGS += -mthumb -mabi=aapcs
+ifeq ($(NRF_MODEL), nrf51)
+CPUFLAGS += -mcpu=cortex-m0 -march=armv6-m
+endif
+ifeq ($(NRF_MODEL), nrf52)
+CPUFLAGS += -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+endif
 CFLAGS += -std=gnu99 -c $(CPUFLAGS) -Wall -Wextra -Wno-unused-parameter -Werror=return-type -D$(DEVICE) -D$(BOARD) -D$(NRF_IC_UPPER) -DSDK_VERSION_$(SDK_VERSION) -DSOFTDEVICE_$(SOFTDEVICE_MODEL)
 CFLAGS += -s -ffunction-sections -fdata-sections
 CFLAGS += -D$(shell echo $(SOFTDEVICE_MODEL) | tr a-z A-Z)
