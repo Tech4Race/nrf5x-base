@@ -779,10 +779,20 @@ ifeq ($(NRF_MODEL), nrf52)
 CPUFLAGS += -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
 endif
 CFLAGS += -std=gnu99 -c $(CPUFLAGS) -Wall -Wextra -Wno-unused-parameter -Werror=return-type -D$(DEVICE) -D$(BOARD) -D$(NRF_IC_UPPER) -DSDK_VERSION_$(SDK_VERSION) -DSOFTDEVICE_$(SOFTDEVICE_MODEL)
-CFLAGS += -s -ffunction-sections -fdata-sections
+# keep every function in separate section. This will allow linker to dump unused functions
+CFLAGS += -s -ffunction-sections -fdata-sections -fno-strict-aliasing
+CFLAGS += -fno-builtin --short-enums 
+
 CFLAGS += -D$(shell echo $(SOFTDEVICE_MODEL) | tr a-z A-Z)
 CFLAGS += $(CMSIS_INCLUDE) $(LIBRARY_INCLUDES) -MD
-LDFLAGS += $(CPUFLAGS) -L $(BASE_DIR)/make/ld -T $(LINKER_SCRIPT) -Wl,--gc-sections -Wl,-Map=$(OUTPUT_PATH)$(OUTPUT_NAME).Map
+
+LDFLAGS += -Xlinker -Map=$(OUTPUT_PATH)$(OUTPUT_NAME).Map
+LDFLAGS += $(CPUFLAGS) -L $(BASE_DIR)/make/ld -T $(LINKER_SCRIPT)
+# let linker to dump unused sections
+LDFLAGS += -Wl,--gc-sections
+# use newlib in nano version
+LDFLAGS += --specs=nano.specs -lc -lnosys
+
 OBJDUMP_FLAGS += --disassemble-all --source --disassembler-options=force-thumb -C --section-headers
 
 DFUHEX = $(BASE_DIR)/dfu/_build/$(DFU_OUTPUT_NAME).hex
