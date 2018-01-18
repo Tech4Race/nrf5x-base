@@ -427,6 +427,7 @@ ifeq ($(SDK_VERSION), 11)
 	LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)drivers_nrf/validation/)
 	LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)drivers_ext/*/)
 	LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)device/)
+	LIBRARY_PATHS += $(wildcard $(SDK_PATH)examples/bsp/)
 	LIBRARY_PATHS += $(SDK_INCLUDE_PATH)toolchain/gcc/
 	LIBRARY_PATHS += $(SDK_INCLUDE_PATH)toolchain/
 	LIBRARY_PATHS += $(SDK_INCLUDE_PATH)toolchain/CMSIS/Include/
