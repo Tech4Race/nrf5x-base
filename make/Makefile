@@ -437,6 +437,7 @@ ifeq ($(SDK_VERSION), 11)
 	SOURCE_PATHS += $(wildcard $(SDK_SOURCE_PATH)libraries/*/)
 	SOURCE_PATHS += $(wildcard $(SDK_SOURCE_PATH)drivers_nrf/*/)
 	SOURCE_PATHS += $(wildcard $(SDK_SOURCE_PATH)drivers_ext/*/)
+	SOURCE_PATHS += $(wildcard $(SDK_PATH)examples/bsp/)
 
 ifdef SERIALIZATION_MODE
 	LIBRARY_PATHS += $(wildcard $(SDK_INCLUDE_PATH)serialization/*/)
