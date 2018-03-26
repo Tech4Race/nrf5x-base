@@ -1,7 +1,8 @@
-TOOLCHAIN_PATH = "c:\Program Files (x86)\GNU Tools ARM Embedded\4.8 2013q4\bin\"
-JLINK_PATH = "C:\Program Files (x86)\SEGGER\JLinkARM_V480\"
+TOOLCHAIN_PATH = "C:/Program Files (x86)/GNU Tools ARM Embedded/7 2017-q4-major/bin/"
+JLINK_PATH = "C:\Program Files (x86)\SEGGER\JLink_V620i\"
+RM := rm -rf
 
-MAKE_BUILD_FOLDER = if not exist $(OUTPUT_PATH:/=\\) mkdir $(OUTPUT_PATH:/=\\)
+MAKE_BUILD_FOLDER = if([ ! -d $(OUTPUT_PATH:/=\\) ]); then mkdir $(OUTPUT_PATH:/=\\); fi
 
 # Make GDB server die after one run.
 JLINKGDBSERVER_OPTION = -s
@@ -14,23 +15,27 @@ endif
 NRFJPROG = nrfjprog $(NRFJPROG_OPTIONS)
 
 clean:
-	if exist .\$(OUTPUT_PATH:/=\\) rmdir /Q /S $(OUTPUT_PATH:/=)
-	if exist *.jlink del /q *.jlink
-	if exist JLink.log del /q JLink.log
-	if exist .gdbinit del /q .gdbinit
+	if ([ -d ".\$(OUTPUT_PATH:/=\\)" ]); then $(RM) $(OUTPUT_PATH:/=); fi
+	if ([ -d "*.jlink" ]); then del /q *.jlink; fi
+	if ([ -d "JLink.log" ]); then del /q JLink.log; fi
+	if ([ -d ".gdbinit" ]); then del /q .gdbinit; fi
 
 $(OUTPUT_PATH):
-	if not exist .\$(OUTPUT_PATH:/=\\) md $(OUTPUT_PATH)
+	if ([ ! -d .\$(OUTPUT_PATH:/=\\) ]); then md $(OUTPUT_PATH); fi
 
 flash:
-	$(NRFJPROG) --program $(HEX) -r
-
+	@echo Flashing : $(HEX)
+	$(NRFJPROG) --program $(HEX) -f nrf52 --sectorerase
+	$(NRFJPROG) --reset -f nrf52
+	
 flash-softdevice:
 ifndef SOFTDEVICE
 	$(error "You need to set the SOFTDEVICE command-line parameter to a path (without spaces) to the softdevice hex-file")
 endif
-	$(NRFJPROG) -e --programs "$(SOFTDEVICE)"
-
+	@echo Flashing : $(SOFTDEVICE)
+	$(NRFJPROG) --program $(SOFTDEVICE) -f nrf52 --chiperase
+	$(NRFJPROG) --reset -f nrf52
+	
 recover:
 	$(NRFJPROG) --recover
 
